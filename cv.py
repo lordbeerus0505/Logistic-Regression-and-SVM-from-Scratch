@@ -7,8 +7,18 @@ import numpy
 import sys
 import pandas as pd
 import copy
+import importlib
+import lr_svm
+from math import sqrt
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
+fivePart1 = importlib.import_module('5_1')
 encoderDict = {}
+LRSVMsplits = []
+NBCsplits = []
+dataLRSVM = 0
+dataNBC = 0
 
 def encoder(pd_series):
     # More information here https://pandas.pydata.org/docs/reference/api/pandas.Series.cat.categories.html easier that pandas.factorize
@@ -194,6 +204,7 @@ def sampling():
         521 to 1040 (i.e., the second 520 lines of training samples after shuffling) and so on. Each set
         has 520 examples.
     """
+    global dataLRSVM, dataNBC
     dataLRSVM = pd.read_csv('trainingSet.csv')
     dataNBC = pd.read_csv('trainingSet_NBC.csv')
     # Using frac=1 performs only shuffling of the data in dataset
@@ -202,19 +213,82 @@ def sampling():
 
     # Now partitioning the data into 10 sets
 
-    NBCsplits = []
     size = len(dataNBC)//10
     for i in range(10):
         NBCsplits.append(dataNBC.iloc[size*i:size*(i+1)])
-    
 
-    LRSVMsplits = []
     size = len(dataLRSVM)//10
     for i in range(10):
         LRSVMsplits.append(dataLRSVM.iloc[size*i:size*(i+1)])
-    
-    import pdb; pdb.set_trace()
 
+def plot(accuracyNBC, accuracyLR, accuracySVM, fracArr, size):
+    # import pdb; pdb.set_trace()
+    accuracyNBC = [ x[0] for x in accuracyNBC]
+    accuracyLR = [ x[0] for x in accuracyLR]
+    accuracySVM = [ x[0] for x in accuracySVM]
+    fig = plt.figure()
+    fig.set_figwidth(7)
+    fig.set_figheight(5)
+    fig.subplots_adjust(bottom=0.3)
+    plt.plot(numpy.multiply(fracArr,size), accuracyNBC, color='red')
+    plt.plot(numpy.multiply(fracArr,size), accuracyLR, color='blue')
+    plt.plot(numpy.multiply(fracArr,size), accuracySVM, color='green')
+
+    plt.scatter(numpy.multiply(fracArr,size), accuracyNBC, color='red')
+    plt.scatter(numpy.multiply(fracArr,size), accuracyLR, color='blue')
+    plt.scatter(numpy.multiply(fracArr,size), accuracySVM, color='green')
+
+    plt.xlabel('Dataset size')
+    plt.ylabel('Accuracy of test')
+    red_patch = mpatches.Patch(color='red', label='NBC')
+    blue_patch = mpatches.Patch(color='blue', label='LR')
+    green_patch = mpatches.Patch(color='green', label='SVM')
+    plt.legend(handles=[red_patch, blue_patch, green_patch])
+    plt.savefig('learningCurves.png')
+    plt.show()
+
+def kfold():
+    global dataLRSVM, dataNBC
+    accuracyNBC = []
+    accuracyLR = []
+    accuracySVM = []
+    for t_frac in [0.025, 0.05, 0.075, 0.1, 0.15, 0.2]:
+        # First for NBC
+        accuracy = []
+        for idx in range(10):
+            test_Set = NBCsplits[idx]
+            train_Set = dataNBC.drop(NBCsplits[idx].index) 
+            train_Set = train_Set.sample(frac=t_frac, random_state=32)
+            print('NBC with index %s, and t_frac %s has a test accuracy of %s'%(idx, t_frac, fivePart1.nbc(train_Set, test_Set)))
+            # Calculating average accuracy
+            accuracy.append(fivePart1.nbc(train_Set, test_Set))
+        accuracyNBC.append([numpy.mean(accuracy), numpy.std(accuracy)/sqrt(10)])
+
+    for t_frac in [0.025, 0.05, 0.075, 0.1, 0.15, 0.2]:
+        # Now for LR
+        accuracy = []
+        for idx in range(10):
+            test_Set = LRSVMsplits[idx]
+            train_Set = dataLRSVM.drop(LRSVMsplits[idx].index) 
+            train_Set = train_Set.sample(frac=t_frac, random_state=32)
+            print('LR with index %s, and t_frac %s has a test accuracy of %s'%(idx, t_frac, lr_svm.lr_crossValidate(train_Set, test_Set)))
+            accuracy.append(lr_svm.lr_crossValidate(train_Set, test_Set))
+        accuracyLR.append([numpy.mean(accuracy), numpy.std(accuracy)/sqrt(10)]) 
+          
+    for t_frac in [0.025, 0.05, 0.075, 0.1, 0.15, 0.2]:
+        # Finally for SVM
+        accuracy = []
+        for idx in range(10):
+            test_Set = LRSVMsplits[idx]
+            train_Set = dataLRSVM.drop(LRSVMsplits[idx].index) 
+            train_Set = train_Set.sample(frac=t_frac, random_state=32)
+
+            print('SVM with index %s, and t_frac %s has a test accuracy of %s'%(idx, t_frac, lr_svm.svm_crossValidate(train_Set, test_Set)))
+            accuracy.append(lr_svm.svm_crossValidate(train_Set, test_Set))
+        accuracySVM.append([numpy.mean(accuracy), numpy.std(accuracy)/sqrt(10)]) 
+
+    # import pdb; pdb.set_trace()
+    plot(accuracyNBC, accuracyLR, accuracySVM, [0.025, 0.05, 0.075, 0.1, 0.15, 0.2], 4680)
 
 if __name__ == '__main__':
     preprocessNBC()
@@ -222,4 +296,6 @@ if __name__ == '__main__':
     creatingNBCdataset()
     # Begin 10 fold cross validation
     sampling()
+    # K Fold Cross Validation step
+    kfold()
 

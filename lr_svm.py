@@ -222,6 +222,74 @@ def lr(trainingSet, testSet):
     performance = lrPerformance(predictions, y_test)
     print('Test Accuracy LR: %.5f'%performance)
 
+def svm_crossValidate(trainingSet, testSet):
+    Y = trainingSet.loc[:, 'decision']
+    X = trainingSet.drop(['decision'], axis=1)
+    Y= np.where(Y==0,-1,Y)
+    # insert 1 in every row for intercept b
+    X.insert(loc=len(X.columns), column='intercept', value=1)
+    
+    X_train = X[:]
+    y_train = Y[:]
+    y_test = testSet.loc[:, 'decision']
+    y_test= np.where(y_test==0,-1,y_test)
+    X_test = testSet.drop(['decision'], axis=1)
+
+    X_test.insert(loc=len(X_test.columns), column='intercept', value=1)
+    svm = SupportVectorMachine(learning_rate = 0.5, numIterations = 500, penalty = 'L2', lambdaValue = 0.01)
+    W = svm.svmTrain(X_train.to_numpy(), y_train)
+
+
+    # testing the model
+    y_train_predicted = np.array([])
+    for i in range(X_train.shape[0]):
+        yp = np.sign(np.dot(X_train.to_numpy()[i], W))
+        y_train_predicted = np.append(y_train_predicted, yp)
+    # print('Training Accuracy SVM: %.5f'%svmPerformance(y_train, y_train_predicted))
+
+
+    y_test_predicted = np.array([])
+    for i in range(X_test.shape[0]):
+        yp = np.sign(np.dot(X_test.to_numpy()[i], W))
+        y_test_predicted = np.append(y_test_predicted, yp)
+    # print('Test Accuracy SVM: %.5f'%svmPerformance(y_test, y_test_predicted))
+    return svmPerformance(y_test, y_test_predicted)
+
+def lr_crossValidate(trainingSet, testSet):
+    import warnings
+    warnings.filterwarnings("ignore")
+    y_train = trainingSet['decision']
+    X_train = trainingSet.drop(['decision'], axis=1)
+    
+    """ # Trying out with simple data to see that the model actually works
+    X_train = [[0,0,0,0], [0,0,0,1], [0,0,1,0], [0,0,1,1], [0,1,0,0], [0,1,0,1],
+     [0,1,1,0], [0,1,1,1], [1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1], [1,1,0,0],
+     [1,1,0,1], [1,1,1,0], [1,1,1,1]]
+    # if b,d true
+    y_train = [0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1]
+    y_train = pd.Series( (v for v in y_train) ) 
+    # Output came to 1.00 accuracy on train set without normalization
+    """
+   
+    #######################################################################
+    # CONSIDER SHUFFLING DATASET EVERY EPOCH ##############################
+    # RESET ALL C WITH LAMBDA AND FLIP THE SIGNS ##########################
+    #######################################################################
+    LR = LogisticRegression(learningRate = 0.01, numIterations = 500, penalty = 'L2', lambdaValue= 100)  
+    LR.train(X_train, y_train, tol = 10 ** -6)
+
+    y_test = testSet['decision']
+    X_test = testSet.drop(['decision'], axis=1)
+
+    # predictions, probs = LR.predict(X_train, 0.5)
+    # performance = lrPerformance(predictions, y_train)
+    # print('Training Accuracy LR: %.5f'%performance)
+
+    predictions, probs = LR.predict(X_test, 0.5)
+    performance = lrPerformance(predictions, y_test)
+    # print('Test Accuracy LR: %.5f'%performance)
+    return lrPerformance(predictions, y_test)
+
 def lrPerformance(prediction, actual):
     diff = np.subtract(prediction, actual)
     return 1- np.sum(np.abs(diff))/len(prediction)
