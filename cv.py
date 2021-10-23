@@ -176,7 +176,7 @@ def discretizeNBC():
     data = pd.read_csv('dating.csv')
     data = part_a(copy.deepcopy(data), 'datingNBCdiscretize.csv')
 
-def samplingNBC():
+def creatingNBCdataset():
     data = pd.read_csv('datingNBCdiscretize.csv')
     test_data = data.sample(frac=0.2, random_state=25)
     indexUsed = test_data.index
@@ -184,8 +184,42 @@ def samplingNBC():
     test_data.to_csv("testSet_NBC.csv", index = False)
     data.to_csv("trainingSet_NBC.csv", index = False)
 
+def sampling():
+    # The training sets are now trainingSet.csv and trainingSet_NBC.csv
+    """ 
+        Use the sample function from pandas with the parameters initialized as random state =
+        18, frac = 1 to shuffle the training data. Then partition the training data into 10 disjoint
+        sets S = [S1... S10], where S1 contains training samples with index from 1 to 520 (i.e., the
+        rest 520 lines of training samples after shuffling), and S2 contains samples with index from
+        521 to 1040 (i.e., the second 520 lines of training samples after shuffling) and so on. Each set
+        has 520 examples.
+    """
+    dataLRSVM = pd.read_csv('trainingSet.csv')
+    dataNBC = pd.read_csv('trainingSet_NBC.csv')
+    # Using frac=1 performs only shuffling of the data in dataset
+    dataLRSVM.sample(frac=1, random_state=18)
+    dataNBC.sample(frac=1, random_state=18)
+
+    # Now partitioning the data into 10 sets
+
+    NBCsplits = []
+    size = len(dataNBC)//10
+    for i in range(10):
+        NBCsplits.append(dataNBC.iloc[size*i:size*(i+1)])
+    
+
+    LRSVMsplits = []
+    size = len(dataLRSVM)//10
+    for i in range(10):
+        LRSVMsplits.append(dataLRSVM.iloc[size*i:size*(i+1)])
+    
+    import pdb; pdb.set_trace()
+
+
 if __name__ == '__main__':
     preprocessNBC()
     discretizeNBC()
-    samplingNBC()
+    creatingNBCdataset()
+    # Begin 10 fold cross validation
+    sampling()
 

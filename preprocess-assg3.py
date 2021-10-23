@@ -201,7 +201,7 @@ def read_dataset(fromFile):
     data.drop(indexUsed, axis=0, inplace=True)
     test_data.to_csv("testSet.csv", index = False)
     data.to_csv("trainingSet.csv", index = False)
-
+    import pdb; pdb.set_trace()
 
 
 if __name__ == '__main__':
