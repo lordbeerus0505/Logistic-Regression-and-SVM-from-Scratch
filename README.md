@@ -6,6 +6,8 @@
 - pip install numpy
 - pip install pandas
 - pip install matplotplib
+- pip install scipy
+- python 3.6.3
 
 #### Please add dating-full.csv to this list before running it.
 
@@ -28,3 +30,5 @@ This part brings back NBC classifier from Assignment 2 and requires that we prep
 The output includes a graph `learningCurves.png` that has the three curves in it. It compares the model input size to its accuracy. Using 10 fold cross validation. Further, for creating and testing a Hypothesis, we use the output arrays from cv.py in `hypothesisTests.py`  
 This produces an output of `Null Hypothesis Rejected; Alternative Hypothesis accepted.` When a significance of 0.01 or 99% is used in the p-value.
 
+#### Special conditions
+Sometimes, there are warnings thrown about division by zero. These are explictly ignored in the code but can be commented out if required.

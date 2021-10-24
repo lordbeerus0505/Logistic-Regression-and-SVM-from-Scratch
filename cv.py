@@ -232,9 +232,9 @@ def plot(accuracyNBC, accuracyLR, accuracySVM, fracArr, size):
     standardErrorSVM = [ x[1] for x in accuracySVM]
 
     fig = plt.figure()
-    fig.set_figwidth(7)
-    fig.set_figheight(5)
-    fig.subplots_adjust(bottom=0.3)
+    fig.set_figwidth(8)
+    fig.set_figheight(7)
+    # fig.subplots_adjust(bottom=0.3)
     plt.errorbar(numpy.multiply(fracArr,size), accuracyForNBC, yerr=standardErrorNBC, color='red')
     plt.errorbar(numpy.multiply(fracArr,size), accuracyForLR, yerr=standardErrorLR, color='blue')
     plt.errorbar(numpy.multiply(fracArr,size), accuracyForSVM, yerr=standardErrorSVM, color='green')
@@ -243,6 +243,8 @@ def plot(accuracyNBC, accuracyLR, accuracySVM, fracArr, size):
     plt.scatter(numpy.multiply(fracArr,size), accuracyForLR, color='blue')
     plt.scatter(numpy.multiply(fracArr,size), accuracyForSVM, color='green')
 
+    plt.xticks([100, 200, 300, 400, 500, 600, 700, 800, 900, 1000], [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000])
+    plt.yticks(numpy.arange(0.5,0.76,0.02))
     plt.xlabel('Dataset size')
     plt.ylabel('Accuracy of test')
     red_patch = mpatches.Patch(color='red', label='NBC')
