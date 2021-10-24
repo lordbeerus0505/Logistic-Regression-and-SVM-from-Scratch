@@ -91,7 +91,7 @@ class LogisticRegression(object):
         
         # +1 for the bias term, w0 in weight vector
         
-        LRobj = LogisticRegression(learningRate = 0.001, numIterations = 5, lambdaValue= 0.01)
+        LRobj = LogisticRegression(learningRate = 0.01, numIterations = 5, lambdaValue= 0.01)
 
         self.weights = np.zeros(np.shape(X_train)[1] + 1) 
         # X_train_copy = X_train[:]
@@ -157,7 +157,7 @@ def svm(trainingSet, testSet):
     # bringing it back to 1,0 form instead of 1,-1 form
     y_train_predicted = np.where(y_train_predicted==-1,0,y_train_predicted)
     y_train = np.where(y_train==-1,0,y_train)
-    print('Training Accuracy SVM: %.5f'%performance(y_train, y_train_predicted))
+    print('Training Accuracy SVM: %.2f'%performance(y_train, y_train_predicted))
 
 
     y_test_predicted = np.array([])
@@ -166,7 +166,7 @@ def svm(trainingSet, testSet):
         y_test_predicted = np.append(y_test_predicted, yp)
     y_test_predicted = np.where(y_test_predicted==-1,0,y_test_predicted)
     y_test = np.where(y_test==-1,0,y_test)
-    print('Test Accuracy SVM: %.5f'%performance(y_test, y_test_predicted))
+    print('Test Accuracy SVM: %.2f'%performance(y_test, y_test_predicted))
 
 
 def lr(trainingSet, testSet):
@@ -196,11 +196,11 @@ def lr(trainingSet, testSet):
 
     predictions, probs = LR.predict(X_train)
     accuracy = performance(predictions, y_train)
-    print('Training Accuracy LR: %.5f'%accuracy)
+    print('Training Accuracy LR: %.2f'%accuracy)
 
     predictions, probs = LR.predict(X_test)
     accuracy = performance(predictions, y_test)
-    print('Test Accuracy LR: %.5f'%accuracy)
+    print('Test Accuracy LR: %.2f'%accuracy)
 
 def svm_crossValidate(trainingSet, testSet):
     Y = trainingSet.loc[:, 'decision']
@@ -271,21 +271,6 @@ def performance(prediction, actual):
 def main(trainingDataFilename, testDataFilename, modelIdx):
     trainingSet = pd.read_csv(trainingDataFilename)
     testSet = pd.read_csv(testDataFilename)
-    y_train = trainingSet['decision']
-    X_train = trainingSet.drop(['decision'], axis=1)
-    
-    
-    """ from sklearn.linear_model import LogisticRegression
-    logisticReg = LogisticRegression(random_state=0).fit(X_train, y_train)
-    result = logisticReg.predict(X_train)
-    print('The LogReg accuracy was:', svmPerformance(result, y_train))
-
-    from sklearn import svm
-    clf = svm.SVC()
-    clf.fit(X_train, y_train) """
-    
-    y_test = testSet['decision']
-    X_test = testSet.drop(['decision'], axis=1)
 
     if modelIdx == '1':
         lr(trainingSet, testSet)

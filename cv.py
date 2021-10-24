@@ -59,7 +59,7 @@ def read_dataset(fromFile, toFile):
     number_of_quotes += field.str.count("\'.*\'").sum()
     data['field'] = field.str.strip('\'')
     
-    print ('Quotes removed from %s cells' %number_of_quotes)
+    """ print ('Quotes removed from %s cells' %number_of_quotes) """
 
     number_of_lowercase_conversions = 0
     
@@ -208,8 +208,8 @@ def sampling():
     dataLRSVM = pd.read_csv('trainingSet.csv')
     dataNBC = pd.read_csv('trainingSet_NBC.csv')
     # Using frac=1 performs only shuffling of the data in dataset
-    dataLRSVM.sample(frac=1, random_state=18)
-    dataNBC.sample(frac=1, random_state=18)
+    dataLRSVM = dataLRSVM.sample(frac=1, random_state=18)
+    dataNBC = dataNBC.sample(frac=1, random_state=18)
 
     # Now partitioning the data into 10 sets
 
@@ -254,6 +254,7 @@ def plot(accuracyNBC, accuracyLR, accuracySVM, fracArr, size):
 
 def kfold():
     global dataLRSVM, dataNBC
+    # import pdb; pdb.set_trace()
     accuracyNBC = []
     accuracyLR = []
     accuracySVM = []
@@ -292,7 +293,7 @@ def kfold():
             accuracy.append(lr_svm.svm_crossValidate(train_Set, test_Set))
         accuracySVM.append([numpy.mean(accuracy), numpy.std(accuracy)/sqrt(10)]) 
 
-    # import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     plot(accuracyNBC, accuracyLR, accuracySVM, [0.025, 0.05, 0.075, 0.1, 0.15, 0.2], 4680)
 
 if __name__ == '__main__':
