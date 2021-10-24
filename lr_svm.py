@@ -30,10 +30,9 @@ class SupportVectorMachine(object):
     tol = 1e - 6, whichever is reached rst. Print the classier's accuracy on both the training
     dataset and the testing dataset (rounded to two decimals).
     """
-    def __init__(self, learning_rate = 0.5, numIterations = 500, penalty = None, lambdaValue = 0.01, tol = 10**-6):
+    def __init__(self, learning_rate = 0.5, numIterations = 500, lambdaValue = 0.01, tol = 10**-6):
         self.learningRate = learning_rate
         self.numIterations = numIterations
-        self.penalty = penalty
         self.lambdaValue = lambdaValue
         self.tol = tol
     
@@ -81,39 +80,30 @@ class LogisticRegression(object):
     tol = 1e - 6, whichever is reached rst. Print the classier's accuracy on both the training
     dataset and the testing dataset (rounded to two decimals).
     """
-    def __init__(self, learningRate, numIterations = 10, penalty = None, lambdaValue = 0.01):
+    def __init__(self, learningRate, numIterations = 10, lambdaValue = 0.01):
         
         self.learningRate = learningRate
         self.numIterations = numIterations
-        self.penalty = penalty
         self.lambdaValue = lambdaValue
         
-    def train(self, X_train, y_train, tol = 10 ** -4):
+    def lrTrain(self, X_train, y_train, tol = 10 ** -4):
         import copy
         
         # +1 for the bias term, w0 in weight vector
         
-        LRobj = LogisticRegression(learningRate = 0.001, numIterations = 5, penalty = 'L2', lambdaValue= 0.01)
-
-
+        LRobj = LogisticRegression(learningRate = 0.001, numIterations = 5, lambdaValue= 0.01)
 
         self.weights = np.zeros(np.shape(X_train)[1] + 1) 
-        X_train_copy = X_train[:]
+        # X_train_copy = X_train[:]
         X_train = np.c_[np.ones([np.shape(X_train)[0], 1]), X_train]
         self.costs = []
-        for i in range(self.numIterations):
+        for _ in range(self.numIterations):
             z = np.dot(X_train, self.weights)
-            errors = - y_train + logistic_func(z) # using notation in slides - yi + yi^
+            errors = - y_train + sigmoid(z) # using notation in slides - yi + yi^
 
-            if self.penalty is not None:    
-                # Not producing single number but a list of numbers 
-                weightAdj = np.true_divide(self.weights, self.lambdaValue, dtype=np.float64)
-                prod = np.dot(errors, X_train) + weightAdj
-                delta_w = self.learningRate * prod
-            else:
-                delta_w = self.learningRate * np.dot(errors, X_train)
-            
-            self.iterationsPerformed = i
+            weightAdj = self.weights * self.lambdaValue
+            prod = np.dot(errors, X_train) + weightAdj
+            delta_w = self.learningRate * prod
 
             # Find L2 norm and update only if greater than tolerance
 
@@ -121,7 +111,7 @@ class LogisticRegression(object):
                 #weight update
                 self.weights -= delta_w   
                 LRobj.weights = self.weights 
-                pred, prob = LRobj.predict(X_train_copy, 0.5)                       
+                # pred, prob = LRobj.predict(X_train_copy, 0.5)                       
 
             else:
                 break
@@ -130,31 +120,18 @@ class LogisticRegression(object):
                     
     def predict(self, X_test, pi = 0.5):
         z = self.weights[0] + np.dot(X_test, self.weights[1:])     
-        probs = np.array([logistic_func(i) for i in z])
+        probs = np.array([sigmoid(i) for i in z])
         predictions = np.where(probs >= pi, 1, 0)
         return predictions, probs
         
-    def performanceEval(self, predictions, y_test):
-        count = 0
-        diff = np.subtract(predictions, y_test)
-        return np.sum(np.abs(diff))/ len(predictions)
-        
 
-def logistic_func(z):   
+def sigmoid(z):   
     return 1 / (1 + np.exp(-z))  
-    
-def logLiklihood(z, y):
-    return -1 * np.sum((y * np.log(logistic_func(z))) + ((1 - y) * np.log(1 - logistic_func(z))))
 
 def replaceZeroes(data):
     min_nonzero = np.min(data[np.nonzero(data)])
     data[data == 0] = min_nonzero
     return data
-
-def reg_logLiklihood(x, weights, y, lambdaValue):
-    z = np.dot(x, weights) 
-    reg_term = (1 / (2 * lambdaValue)) * np.dot(weights.T, weights)
-    return -1 * np.sum((y * np.log(logistic_func(z))) + ((1 - y) * np.log(1 - logistic_func(z)))) + reg_term
 
 def svm(trainingSet, testSet):
     Y = trainingSet.loc[:, 'decision']
@@ -170,7 +147,7 @@ def svm(trainingSet, testSet):
     X_test = testSet.drop(['decision'], axis=1)
 
     X_test.insert(loc=len(X_test.columns), column='intercept', value=1)
-    svm = SupportVectorMachine(learning_rate = 0.5, numIterations = 500, penalty = 'L2', lambdaValue = 0.01)
+    svm = SupportVectorMachine(learning_rate = 0.5, numIterations = 500, lambdaValue = 0.01)
     W = svm.svmTrain(X_train.to_numpy(), y_train)
 
 
@@ -208,8 +185,8 @@ def lr(trainingSet, testSet):
     # CONSIDER SHUFFLING DATASET EVERY EPOCH ##############################
     # RESET ALL C WITH LAMBDA AND FLIP THE SIGNS ##########################
     #######################################################################
-    LR = LogisticRegression(learningRate = 0.01, numIterations = 500, penalty = 'L2', lambdaValue= 100)  
-    LR.train(X_train, y_train, tol = 10 ** -6)
+    LR = LogisticRegression(learningRate = 0.01, numIterations = 500, lambdaValue= 0.01)  
+    LR.lrTrain(X_train, y_train, tol = 10 ** -6)
 
     y_test = testSet['decision']
     X_test = testSet.drop(['decision'], axis=1)
@@ -236,7 +213,7 @@ def svm_crossValidate(trainingSet, testSet):
     X_test = testSet.drop(['decision'], axis=1)
 
     X_test.insert(loc=len(X_test.columns), column='intercept', value=1)
-    svm = SupportVectorMachine(learning_rate = 0.5, numIterations = 500, penalty = 'L2', lambdaValue = 0.01)
+    svm = SupportVectorMachine(learning_rate = 0.5, numIterations = 500, lambdaValue = 0.01)
     W = svm.svmTrain(X_train.to_numpy(), y_train)
 
 
@@ -245,14 +222,12 @@ def svm_crossValidate(trainingSet, testSet):
     for i in range(X_train.shape[0]):
         yp = np.sign(np.dot(X_train.to_numpy()[i], W))
         y_train_predicted = np.append(y_train_predicted, yp)
-    # print('Training Accuracy SVM: %.5f'%svmPerformance(y_train, y_train_predicted))
-
 
     y_test_predicted = np.array([])
     for i in range(X_test.shape[0]):
         yp = np.sign(np.dot(X_test.to_numpy()[i], W))
         y_test_predicted = np.append(y_test_predicted, yp)
-    # print('Test Accuracy SVM: %.5f'%svmPerformance(y_test, y_test_predicted))
+
     return svmPerformance(y_test, y_test_predicted)
 
 def lr_crossValidate(trainingSet, testSet):
@@ -275,19 +250,14 @@ def lr_crossValidate(trainingSet, testSet):
     # CONSIDER SHUFFLING DATASET EVERY EPOCH ##############################
     # RESET ALL C WITH LAMBDA AND FLIP THE SIGNS ##########################
     #######################################################################
-    LR = LogisticRegression(learningRate = 0.01, numIterations = 500, penalty = 'L2', lambdaValue= 100)  
-    LR.train(X_train, y_train, tol = 10 ** -6)
+    LR = LogisticRegression(learningRate = 0.01, numIterations = 500, lambdaValue= 0.01)  
+    LR.lrTrain(X_train, y_train, tol = 10 ** -6)
 
     y_test = testSet['decision']
     X_test = testSet.drop(['decision'], axis=1)
 
-    # predictions, probs = LR.predict(X_train, 0.5)
-    # performance = lrPerformance(predictions, y_train)
-    # print('Training Accuracy LR: %.5f'%performance)
-
     predictions, probs = LR.predict(X_test, 0.5)
-    performance = lrPerformance(predictions, y_test)
-    # print('Test Accuracy LR: %.5f'%performance)
+
     return lrPerformance(predictions, y_test)
 
 def lrPerformance(prediction, actual):

@@ -223,20 +223,25 @@ def sampling():
 
 def plot(accuracyNBC, accuracyLR, accuracySVM, fracArr, size):
     # import pdb; pdb.set_trace()
-    accuracyNBC = [ x[0] for x in accuracyNBC]
-    accuracyLR = [ x[0] for x in accuracyLR]
-    accuracySVM = [ x[0] for x in accuracySVM]
+    accuracyForNBC = [ x[0] for x in accuracyNBC]
+    accuracyForLR = [ x[0] for x in accuracyLR]
+    accuracyForSVM = [ x[0] for x in accuracySVM]
+
+    standardErrorNBC = [ x[1] for x in accuracyNBC]
+    standardErrorLR = [ x[1] for x in accuracyLR]
+    standardErrorSVM = [ x[1] for x in accuracySVM]
+
     fig = plt.figure()
     fig.set_figwidth(7)
     fig.set_figheight(5)
     fig.subplots_adjust(bottom=0.3)
-    plt.plot(numpy.multiply(fracArr,size), accuracyNBC, color='red')
-    plt.plot(numpy.multiply(fracArr,size), accuracyLR, color='blue')
-    plt.plot(numpy.multiply(fracArr,size), accuracySVM, color='green')
+    plt.errorbar(numpy.multiply(fracArr,size), accuracyForNBC, yerr=standardErrorNBC, color='red')
+    plt.errorbar(numpy.multiply(fracArr,size), accuracyForLR, yerr=standardErrorLR, color='blue')
+    plt.errorbar(numpy.multiply(fracArr,size), accuracyForSVM, yerr=standardErrorSVM, color='green')
 
-    plt.scatter(numpy.multiply(fracArr,size), accuracyNBC, color='red')
-    plt.scatter(numpy.multiply(fracArr,size), accuracyLR, color='blue')
-    plt.scatter(numpy.multiply(fracArr,size), accuracySVM, color='green')
+    plt.scatter(numpy.multiply(fracArr,size), accuracyForNBC, color='red')
+    plt.scatter(numpy.multiply(fracArr,size), accuracyForLR, color='blue')
+    plt.scatter(numpy.multiply(fracArr,size), accuracyForSVM, color='green')
 
     plt.xlabel('Dataset size')
     plt.ylabel('Accuracy of test')
