@@ -73,7 +73,7 @@ def read_dataset(fromFile):
     number_of_quotes += field.str.count("\'.*\'").sum()
     data['field'] = field.str.strip('\'')
     
-    print ('Quotes removed from %s cells' %number_of_quotes)
+    """ print ('Quotes removed from %s cells' %number_of_quotes) """
 
     """ Convert all the values in the column field to lowercase if they are not already in lowercases
         (e.g., Law → law). Count the number of cells that are changed after this pre-processing step,
@@ -87,7 +87,7 @@ def read_dataset(fromFile):
     # This is done by subtracting all PURE lowercase words
     number_of_lowercase_conversions += len(data) - data['field'].str.islower().sum()
     data['field'] = data['field'].str.lower()
-    print("Standardized %s cells to lower case"%(number_of_lowercase_conversions))
+    """ print("Standardized %s cells to lower case"%(number_of_lowercase_conversions)) """
 
     """ 
     Use label encoding to convert the categorical values in columns gender, race, race_o and
@@ -201,7 +201,6 @@ def read_dataset(fromFile):
     data.drop(indexUsed, axis=0, inplace=True)
     test_data.to_csv("testSet.csv", index = False)
     data.to_csv("trainingSet.csv", index = False)
-    import pdb; pdb.set_trace()
 
 
 if __name__ == '__main__':

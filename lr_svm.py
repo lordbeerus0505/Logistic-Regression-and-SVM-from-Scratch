@@ -134,14 +134,12 @@ def replaceZeroes(data):
     return data
 
 def svm(trainingSet, testSet):
-    Y = trainingSet.loc[:, 'decision']
-    X = trainingSet.drop(['decision'], axis=1)
-    Y= np.where(Y==0,-1,Y)
+    y_train = trainingSet.loc[:, 'decision']
+    X_train = trainingSet.drop(['decision'], axis=1)
+    y_train= np.where(y_train==0,-1,y_train)
     # insert 1 in every row for intercept b
-    X.insert(loc=len(X.columns), column='intercept', value=1)
+    X_train.insert(loc=len(X_train.columns), column='intercept', value=1)
     
-    X_train = X[:]
-    y_train = Y[:]
     y_test = testSet.loc[:, 'decision']
     y_test= np.where(y_test==0,-1,y_test)
     X_test = testSet.drop(['decision'], axis=1)
@@ -156,14 +154,19 @@ def svm(trainingSet, testSet):
     for i in range(X_train.shape[0]):
         yp = np.sign(np.dot(X_train.to_numpy()[i], W))
         y_train_predicted = np.append(y_train_predicted, yp)
-    print('Training Accuracy SVM: %.5f'%svmPerformance(y_train, y_train_predicted))
+    # bringing it back to 1,0 form instead of 1,-1 form
+    y_train_predicted = np.where(y_train_predicted==-1,0,y_train_predicted)
+    y_train = np.where(y_train==-1,0,y_train)
+    print('Training Accuracy SVM: %.5f'%performance(y_train, y_train_predicted))
 
 
     y_test_predicted = np.array([])
     for i in range(X_test.shape[0]):
         yp = np.sign(np.dot(X_test.to_numpy()[i], W))
         y_test_predicted = np.append(y_test_predicted, yp)
-    print('Test Accuracy SVM: %.5f'%svmPerformance(y_test, y_test_predicted))
+    y_test_predicted = np.where(y_test_predicted==-1,0,y_test_predicted)
+    y_test = np.where(y_test==-1,0,y_test)
+    print('Test Accuracy SVM: %.5f'%performance(y_test, y_test_predicted))
 
 
 def lr(trainingSet, testSet):
@@ -191,13 +194,13 @@ def lr(trainingSet, testSet):
     y_test = testSet['decision']
     X_test = testSet.drop(['decision'], axis=1)
 
-    predictions, probs = LR.predict(X_train, 0.5)
-    performance = lrPerformance(predictions, y_train)
-    print('Training Accuracy LR: %.5f'%performance)
+    predictions, probs = LR.predict(X_train)
+    accuracy = performance(predictions, y_train)
+    print('Training Accuracy LR: %.5f'%accuracy)
 
-    predictions, probs = LR.predict(X_test, 0.5)
-    performance = lrPerformance(predictions, y_test)
-    print('Test Accuracy LR: %.5f'%performance)
+    predictions, probs = LR.predict(X_test)
+    accuracy = performance(predictions, y_test)
+    print('Test Accuracy LR: %.5f'%accuracy)
 
 def svm_crossValidate(trainingSet, testSet):
     Y = trainingSet.loc[:, 'decision']
@@ -218,17 +221,18 @@ def svm_crossValidate(trainingSet, testSet):
 
 
     # testing the model
-    y_train_predicted = np.array([])
-    for i in range(X_train.shape[0]):
-        yp = np.sign(np.dot(X_train.to_numpy()[i], W))
-        y_train_predicted = np.append(y_train_predicted, yp)
+    # y_train_predicted = np.array([])
+    # for i in range(X_train.shape[0]):
+    #     yp = np.sign(np.dot(X_train.to_numpy()[i], W))
+    #     y_train_predicted = np.append(y_train_predicted, yp)
 
     y_test_predicted = np.array([])
     for i in range(X_test.shape[0]):
         yp = np.sign(np.dot(X_test.to_numpy()[i], W))
         y_test_predicted = np.append(y_test_predicted, yp)
-
-    return svmPerformance(y_test, y_test_predicted)
+    y_test_predicted = np.where(y_test_predicted==-1,0,y_test_predicted)
+    y_test = np.where(y_test==-1,0,y_test)
+    return performance(y_test, y_test_predicted)
 
 def lr_crossValidate(trainingSet, testSet):
     import warnings
@@ -256,18 +260,11 @@ def lr_crossValidate(trainingSet, testSet):
     y_test = testSet['decision']
     X_test = testSet.drop(['decision'], axis=1)
 
-    predictions, probs = LR.predict(X_test, 0.5)
+    predictions, probs = LR.predict(X_test)
 
-    return lrPerformance(predictions, y_test)
+    return performance(predictions, y_test)
 
-def lrPerformance(prediction, actual):
-    diff = np.subtract(prediction, actual)
-    return 1- np.sum(np.abs(diff))/len(prediction)
-
-def svmPerformance(prediction, actual):
-    prediction = np.where(prediction<0.5, 0, 1)
-    actual = np.where(actual<0.5, 0, 1)
-
+def performance(prediction, actual):
     diff = np.subtract(prediction, actual)
     return 1- np.sum(np.abs(diff))/len(prediction)
 
