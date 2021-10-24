@@ -293,7 +293,7 @@ def kfold():
             accuracy.append(lr_svm.svm_crossValidate(train_Set, test_Set))
         accuracySVM.append([numpy.mean(accuracy), numpy.std(accuracy)/sqrt(10)]) 
 
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     plot(accuracyNBC, accuracyLR, accuracySVM, [0.025, 0.05, 0.075, 0.1, 0.15, 0.2], 4680)
 
 if __name__ == '__main__':

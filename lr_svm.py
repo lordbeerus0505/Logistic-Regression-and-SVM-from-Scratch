@@ -16,7 +16,8 @@ import matplotlib.pyplot as plt
 from matplotlib import style
 style.use('ggplot')
 
-
+import warnings
+warnings.filterwarnings("ignore")
 class SupportVectorMachine(object):
     """ 
     Write a function named svm(trainingSet, testSet) which takes the training dataset and
@@ -36,18 +37,19 @@ class SupportVectorMachine(object):
         self.lambdaValue = lambdaValue
         self.tol = tol
     
-    def svmGradientCost(self, W, X_batch, Y_batch):
+    def svmGradientCost(self, W, X_batch, y_i):
         yi_hat = np.dot(X_batch, W)
-        product = yi_hat*Y_batch
+        # as per slides, the value is either 0 or yi*yi_hat for delta_j
+        product = yi_hat*y_i
         
-        netResult = np.where(product<1,Y_batch,0) 
+        netResult = np.where(product<1,y_i,0) 
         # when mistake the product is less than 1.
         # since 0 into anything anyway 0 can put it here and then multiply later
         netResult = np.tile(netResult.transpose(),(X_batch.shape[1],1))
         delta_ji = netResult.T*X_batch
         
         delta = self.lambdaValue*W - delta_ji
-        delta = np.sum(delta, axis=0)/len(Y_batch)
+        delta = np.sum(delta, axis=0)/len(y_i)
         return delta
 
 
@@ -235,8 +237,7 @@ def svm_crossValidate(trainingSet, testSet):
     return performance(y_test, y_test_predicted)
 
 def lr_crossValidate(trainingSet, testSet):
-    import warnings
-    warnings.filterwarnings("ignore")
+    
     y_train = trainingSet['decision']
     X_train = trainingSet.drop(['decision'], axis=1)
     
